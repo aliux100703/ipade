@@ -16,7 +16,7 @@ if (isset($_SESSION['username'])) {
 if (isset($_SESSION['id'])) {
     $usuario_id = $_SESSION['id'];
 } else {
-    $usuario_id = 0; 
+    $usuario_id = 0;
 }
 ?>
 <!DOCTYPE html>
@@ -24,6 +24,7 @@ if (isset($_SESSION['id'])) {
 
 <head>
     <title>Usuarios</title>
+    <link rel="Website Icon" type="png" href="icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <style>
@@ -68,19 +69,38 @@ if (isset($_SESSION['id'])) {
             <ul class="navbar-nav ml-auto">
                 <!-- Opción 2 (sin modificar los estilos) -->
                 <li class="nav-item">
-                    <a href="./../login/cerrar_sesion.php" class="btn btn-danger">
-                        <i class="fas fa-sign-out-alt">Cerrar Sesión</i>
-                    </a>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modalCerrarSesion">
+                        Cerrar Sesión
+                    </button>
                 </li>
             </ul>
         </div>
     </nav>
-
+    <!-- Modal -->
+    <div class="modal fade" id="modalCerrarSesion" tabindex="-1" role="dialog" aria-labelledby="modalCerrarSesionLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCerrarSesionLabel">Confirmar Cierre de Sesión</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas cerrar sesión?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <a href="./../login/cerrar_sesion.php" class="btn btn-danger">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container">
 
         <center>
             <h2>Bienvenido, <?php echo $username; ?></h2>
-            <h2>Bienvenido, <?php echo $usuario_id; ?></h2>
+
         </center>
         <h1 class="mt-4">Lista de Grupos</h1>
 

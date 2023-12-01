@@ -17,6 +17,7 @@ if (!isset($_SESSION['rol'])) {
 <head>
     <meta charset="UTF-8">
     <title>Grupos</title>
+    <link rel="Website Icon" type="png" href="icon.png">
     <!-- Agregar Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -67,13 +68,37 @@ if (!isset($_SESSION['rol'])) {
             <ul class="navbar-nav ml-auto">
                 <!-- Opción 2 (sin modificar los estilos) -->
                 <li class="nav-item">
-                    <a href="./../login/cerrar_sesion.php" class="btn btn-danger">
-                        <i class="fas fa-sign-out-alt">Cerrar Sesión</i>
-                    </a>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modalCerrarSesion">
+                        Cerrar Sesión
+                    </button>
                 </li>
             </ul>
         </div>
     </nav>
+    <!-- Botón para abrir el modal -->
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="modalCerrarSesion" tabindex="-1" role="dialog" aria-labelledby="modalCerrarSesionLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCerrarSesionLabel">Confirmar Cierre de Sesión</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas cerrar sesión?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <a href="./../login/cerrar_sesion.php" class="btn btn-danger">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div class="container">
 
@@ -101,18 +126,14 @@ if (!isset($_SESSION['rol'])) {
                 if ($stmt->rowCount() > 0) {
                     echo "<h2>Reuniones del Grupo:</h2>";
                     echo "<table class='table'>";
-                    echo "<tr><th>ID</th><th>Display Name</th><th>Meeting Number</th><th>Meeting Password</th><th>Meeting Email</th><th>Meeting Role</th><th>Meeting China</th><th>Meeting Lang</th><th>Grupo ID</th></tr>";
+                    echo "<tr><th>ID</th><th>Zoom URL</th><th>Meeting Name</th><th>Meeting Date</th><th>Grupo ID</th></tr>";
 
                     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                         echo "<tr>";
-                        echo "<td>" . $row['id'] . "</td>";
-                        echo "<td>" . $row['display_name'] . "</td>";
-                        echo "<td>" . $row['meeting_number'] . "</td>";
-                        echo "<td>" . $row['meeting_pwd'] . "</td>";
-                        echo "<td>" . $row['meeting_email'] . "</td>";
-                        echo "<td>" . $row['meeting_role'] . "</td>";
-                        echo "<td>" . $row['meeting_china'] . "</td>";
-                        echo "<td>" . $row['meeting_lang'] . "</td>";
+                        echo "<td>" . $row['meeting_id'] . "</td>";
+                        echo "<td>" . $row['zoom_url'] . "</td>";
+                        echo "<td>" . $row['meeting_name'] . "</td>";
+                        echo "<td>" . $row['meeting_date'] . "</td>";
                         echo "<td>" . $row['grupo_id'] . "</td>";
                         echo "</tr>";
                     }
@@ -131,6 +152,7 @@ if (!isset($_SESSION['rol'])) {
         // Cerrar la conexión
         $conn = null;
         ?>
+
 
     </div>
     <script>

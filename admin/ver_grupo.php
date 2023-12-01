@@ -1,6 +1,4 @@
-
 <?php
-
 session_start();
 
 if (!isset($_SESSION['rol'])) {
@@ -17,8 +15,12 @@ if (!isset($_SESSION['rol'])) {
 <head>
     <meta charset="UTF-8">
     <title>Grupos</title>
+    <link rel="Website Icon" type="png" href="icon.png">
     <!-- Agregar Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+
     <style>
         .navbar {
             background-color: #a29475;
@@ -46,178 +48,214 @@ if (!isset($_SESSION['rol'])) {
             <span class="navbar-toggler-icon"></span>
         </button>
         <!-- Botón de menú 2 -->
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav2" aria-controls="navbarNav2" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+
         <div class="collapse navbar-collapse" id="navbarNav1">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a href="vista_grupos.php" class="nav-link">Grupos</a>
+                    <a class="nav-link" href="vista_grupos.php">Grupos</a>
                 </li>
                 <li class="nav-item">
-                    <a href="vista_usuarios.php" class="nav-link">Usuarios</a>
+                    <a class="nav-link" href="vista_usuarios.php">Usuarios</a>
                 </li>
+
+
             </ul>
         </div>
         <div class="collapse navbar-collapse" id="navbarNav2">
             <ul class="navbar-nav ml-auto">
-                <!-- Opción 2 (sin modificar los estilos) -->
+                <!-- Sección de Notificaciones -->
                 <li class="nav-item">
-                    <a href="./../login/cerrar_sesion.php" class="btn btn-danger">
-                        <i class="fas fa-sign-out-alt">Cerrar Sesión</i>
+                    <a class="nav-link" href="#" data-toggle="modal" data-target="#notificacionesModal">
+                        <i class="fas fa-bell"></i>
+                        <span id="contadorNotificaciones" class="badge badge-danger"></span>
                     </a>
+                </li>
+
+                <!-- Opción de Cerrar Sesión -->
+                <li class="nav-item">
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modalCerrarSesion">
+                        Cerrar Sesión
+                    </button>
                 </li>
             </ul>
         </div>
     </nav>
+    <!-- Modal -->
+    <div class="modal fade" id="modalCerrarSesion" tabindex="-1" role="dialog" aria-labelledby="modalCerrarSesionLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCerrarSesionLabel">Confirmar Cierre de Sesión</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas cerrar sesión?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <a href="./../login/cerrar_sesion.php" class="btn btn-danger">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="notificacionesModal" tabindex="-1" role="dialog" aria-labelledby="notificacionesModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="notificacionesModalLabel">Notificaciones</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Aquí puedes mostrar la lista de notificaciones -->
+                    <ul class="list-group">
+                        <?php
+                        include 'conexion.php';
+                        try {
+                            $stmt = $conn->prepare("
+                            SELECT usuarios.nombre as nombre_usuario, grupos.nombre_grupo as nombre_grupo, usuarios_grupos.id
+                            FROM usuarios_grupos
+                            INNER JOIN usuarios ON usuarios_grupos.usuario_id = usuarios.id
+                            INNER JOIN grupos ON usuarios_grupos.grupo_id = grupos.id
+                            WHERE usuarios_grupos.estado = 'pendiente'
+                        ");
+                            $stmt->execute();
+                            $notificaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+                            // Mostrar notificaciones
+                            if (count($notificaciones) > 0) {
+                                foreach ($notificaciones as $notificacion) {
+                                    echo "<li class='list-group-item'>El usuario {$notificacion['nombre_usuario']} ha solicitado unirse al grupo {$notificacion['nombre_grupo']}";
+
+                                    echo "<form method='post' action='procesar_solicitud.php'>";
+                                    echo "<input type='hidden' name='solicitud_id' value='{$notificacion['id']}'>";
+                                    echo "<button type='submit' name='accion' value='aceptar' class='btn btn-primary'>Aceptar</button>";
+                                    echo "<button type='submit' name='accion' value='rechazar' class='btn btn-danger'>Rechazar</button>";
+                                    echo "</form>";
+
+                                    echo "</li>";
+                                }
+                            } else {
+                                echo "<li class='list-group-item'>No hay notificaciones pendientes.</li>";
+                            }
+                        } catch (PDOException $e) {
+                            echo "<li class='list-group-item'>Error al obtener notificaciones: " . $e->getMessage() . "</li>";
+                        }
+
+
+
+                        // Cerrar la conexión
+                        $conn = null;
+                        ?>
+                    </ul>
+                </div>
+
+
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--contenido-->
     <div class="container">
         <a href="vista_grupos.php" class="btn btn-primary mt-3">Volver </a>
         <h1 class="mt-4">Formulario de Reunión</h1>
 
-        <form method="post">
-            <div class="form-group">
-                <label for="display_name">Nombre</label>
-                <input type="text" class="form-control" id="display_name" name="display_name" value="2.16.0#CDN" maxLength="100" placeholder="Nombre" required>
-            </div>
-            <div class="form-group">
-                <label for="meeting_number">Número de Reunión</label>
-                <input type="text" class="form-control" id="meeting_number" name="meeting_number" maxLength="200" style="width:150px" placeholder="Número de Reunión" required>
-            </div>
-            <div class="form-group">
-                <label for="meeting_pwd">Contraseña de Reunión</label>
-                <input type="text" class="form-control" id="meeting_pwd" name="meeting_pwd" maxLength="32" style="width:150px" placeholder="Contraseña de Reunión">
-            </div>
-            <div class="form-group">
-                <label for="meeting_email">Email de Opción</label>
-                <input type="text" class="form-control" id="meeting_email" name="meeting_email" maxLength="32" style="width:150px" placeholder="Email de Opción">
-            </div>
-            <div class="form-group">
-                <label for="meeting_role">Rol en la Reunión</label>
-                <select id="meeting_role" class="form-control" name="meeting_role">
-                    <option value="0">Attendee</option>
-                    <option value="1">Host</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="meeting_china">Tipo de Reunión</label>
-                <select id="meeting_china" class="form-control" name="meeting_china">
-                    <option value="0">Global</option>
-                    <option value="1">China</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="meeting_lang">Idioma de la Reunión</label>
-                <select id="meeting_lang" class="form-control" name="meeting_lang">
-                    <option value="en-US">English</option>
-                    <option value="de-DE">German Deutsch</option>
-                    <!-- Agrega las opciones restantes aquí -->
-                </select>
-            </div>
-            <input type="hidden" name="grupo_id" value="<?php echo $_GET['id']; ?>">
+        <!--formulario que tiene que hacer el pendejo del donovan 🤑-->
+        <br>
 
-            <button type="submit" class="btn btn-primary">Guardar Reunión</button>
-            <input type="hidden" name="copy_link_value" value="">
-            <button type="submit" class="btn btn-primary" id="join_meeting">Unirse a la Reunión</button>
-            <button type="submit" class="btn btn-primary" id="clear_all">Limpiar</button>
-            <button type="button" link="" onclick="window.copyJoinLink('#copy_join_link')" class="btn btn-primary" id="copy_join_link">Copiar Enlace de Unión Directa</button>
-
-        </form>
-
-
-        <?php
-        include 'conexion.php';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $display_name = htmlspecialchars($_POST['display_name']);
-            $meeting_number = htmlspecialchars($_POST['meeting_number']);
-            $meeting_pwd = htmlspecialchars($_POST['meeting_pwd']);
-            $meeting_email = htmlspecialchars($_POST['meeting_email']);
-            $meeting_role = (int)$_POST['meeting_role'];
-            $meeting_china = (int)$_POST['meeting_china'];
-            $meeting_lang = htmlspecialchars($_POST['meeting_lang']);
-            $grupo_id = (int)$_POST['grupo_id'];
-
-            try {
-                // Preparar la consulta SQL
-                $stmt = $conn->prepare("INSERT INTO reuniones (display_name, meeting_number, meeting_pwd, meeting_email, meeting_role, meeting_china, meeting_lang, grupo_id) 
-        VALUES (:display_name, :meeting_number, :meeting_pwd, :meeting_email, :meeting_role, :meeting_china, :meeting_lang, :grupo_id)");
-
-                // Vincular los parámetros
-                $stmt->bindParam(':display_name', $display_name, PDO::PARAM_STR);
-                $stmt->bindParam(':meeting_number', $meeting_number, PDO::PARAM_STR);
-                $stmt->bindParam(':meeting_pwd', $meeting_pwd, PDO::PARAM_STR);
-                $stmt->bindParam(':meeting_email', $meeting_email, PDO::PARAM_STR);
-                $stmt->bindParam(':meeting_role', $meeting_role, PDO::PARAM_INT);
-                $stmt->bindParam(':meeting_china', $meeting_china, PDO::PARAM_INT);
-                $stmt->bindParam(':meeting_lang', $meeting_lang, PDO::PARAM_STR);
-                $stmt->bindParam(':grupo_id', $grupo_id, PDO::PARAM_INT);
-
-                // Ejecutar la consulta
-                $stmt->execute();
-
-                echo "Los datos se han guardado correctamente.";
-            } catch (PDOException $e) {
-                echo "Error al guardar los datos: " . $e->getMessage();
-            }
-
-            $conn = null; // Cerrar la conexión
-        }
-        ?>
 
 
 
         <!-- Despliegue de los campos -->
         <?php
-include 'conexion.php';
+        include 'conexion.php';
 
-// Verificar si se ha proporcionado un ID de grupo
-if (isset($_GET['id'])) {
-    $grupo_id = $_GET['id'];
+        // Verificar si se ha proporcionado un ID de grupo
+        if (isset($_GET['id'])) {
+            $grupo_id = $_GET['id'];
 
-    try {
-        // Preparar la consulta SQL
-        $stmt = $conn->prepare("SELECT * FROM reuniones WHERE grupo_id = :grupo_id");
+            try {
+                // Preparar la consulta SQL
+                $stmt = $conn->prepare("SELECT * FROM reuniones WHERE grupo_id = :grupo_id");
 
-        // Vincular el parámetro
-        $stmt->bindParam(':grupo_id', $grupo_id, PDO::PARAM_INT);
+                // Vincular el parámetro
+                $stmt->bindParam(':grupo_id', $grupo_id, PDO::PARAM_INT);
 
-        // Ejecutar la consulta
-        $stmt->execute();
+                // Ejecutar la consulta
+                $stmt->execute();
 
-        if ($stmt->rowCount() > 0) {
-            echo "<h2>Reuniones del Grupo:</h2>";
-            echo "<table class='table'>";
-            echo "<tr><th>ID</th><th>Display Name</th><th>Meeting Number</th><th>Meeting Password</th><th>Meeting Email</th><th>Meeting Role</th><th>Meeting China</th><th>Meeting Lang</th><th>Grupo ID</th></tr>";
+                if ($stmt->rowCount() > 0) {
+                    echo "<h2>Reuniones del Grupo:</h2>";
+                    echo "<table class='table'>";
+                    echo "<tr><th>ID</th><th>Zoom URL</th><th>Meeting Name</th><th>Meeting Date</th><th>Grupo ID</th></tr>";
 
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                echo "<tr>";
-                echo "<td>" . $row['id'] . "</td>";
-                echo "<td>" . $row['display_name'] . "</td>";
-                echo "<td>" . $row['meeting_number'] . "</td>";
-                echo "<td>" . $row['meeting_pwd'] . "</td>";
-                echo "<td>" . $row['meeting_email'] . "</td>";
-                echo "<td>" . $row['meeting_role'] . "</td>";
-                echo "<td>" . $row['meeting_china'] . "</td>";
-                echo "<td>" . $row['meeting_lang'] . "</td>";
-                echo "<td>" . $row['grupo_id'] . "</td>";
-                echo "</tr>";
+                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        echo "<tr>";
+                        echo "<td>" . $row['meeting_id'] . "</td>";
+                        echo "<td>" . $row['zoom_url'] . "</td>";
+                        echo "<td>" . $row['meeting_name'] . "</td>";
+                        echo "<td>" . $row['meeting_date'] . "</td>";
+                        echo "<td>" . $row['grupo_id'] . "</td>";
+                        echo "</tr>";
+                    }
+
+                    echo "</table>";
+                } else {
+                    echo "No hay reuniones disponibles para este grupo.";
+                }
+            } catch (PDOException $e) {
+                echo "Error al ejecutar la consulta: " . $e->getMessage();
             }
-
-            echo "</table>";
         } else {
-            echo "No hay reuniones disponibles para este grupo.";
+            echo "No se proporcionó un ID de grupo.";
         }
-    } catch (PDOException $e) {
-        echo "Error al ejecutar la consulta: " . $e->getMessage();
-    }
-} else {
-    echo "No se proporcionó un ID de grupo.";
-}
 
-// Cerrar la conexión
-$conn = null;
-?>
+        // Cerrar la conexión
+        $conn = null;
+        ?>
+
+
+        <?php
+        include 'conexion.php';
+
+        try {
+            $grupo_id = $_GET['id']; // Suponiendo que recibes el ID del grupo por GET
+
+            $stmt = $conn->prepare("
+        SELECT usuarios.nombre as nombre_usuario
+        FROM usuarios_grupos
+        INNER JOIN usuarios ON usuarios_grupos.usuario_id = usuarios.id
+        WHERE usuarios_grupos.grupo_id = :grupo_id AND usuarios_grupos.estado = 'aprobada'
+    ");
+            $stmt->bindParam(':grupo_id', $grupo_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $usuarios_en_grupo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Mostrar los usuarios en el grupo
+            if (count($usuarios_en_grupo) > 0) {
+                echo "<h2>Usuarios en el Grupo</h2>";
+                echo "<ul>";
+                foreach ($usuarios_en_grupo as $usuario) {
+                    echo "<li>{$usuario['nombre_usuario']}</li>";
+                }
+                echo "</ul>";
+            } else {
+                echo "No hay usuarios en este grupo.";
+            }
+        } catch (PDOException $e) {
+            echo "Error al obtener usuarios del grupo: " . $e->getMessage();
+        }
+
+        $conn = null;
+        ?>
 
 
 
@@ -235,11 +273,34 @@ $conn = null;
             }
         })
     </script>
+    <script>
+        $(document).ready(function() {
+            // Utilizando jQuery para la petición AJAX
+            $.ajax({
+                url: 'obtener_pendientes.php', // Ruta al archivo PHP que acabamos de crear
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.total !== undefined) {
+                        // Actualizar el contador de notificaciones
+                        document.getElementById('contadorNotificaciones').textContent = response.total;
+                    } else {
+                        console.error('Error al obtener la cantidad de usuarios pendientes:', response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error en la petición AJAX:', error);
+                }
+            });
+        });
+    </script>
 
     <!-- Agregar Bootstrap JS y dependencias -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </body>
 
 </html>
